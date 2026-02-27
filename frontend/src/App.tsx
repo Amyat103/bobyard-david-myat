@@ -5,12 +5,40 @@ import EditComment from './components/EditComment';
 function App() {
   const [comments, setComments] = useState([]); // flip comment backward if time
   const [editId, setEditId] = useState(null); // only set when editing
+  const [sortBy, setSortBy] = useState('dateAscend'); // persist sorting
 
   // get all comments
   const getComments = async () => {
     const res = await fetch('http://127.0.0.1:8000/api/all_comments/');
     const data = await res.json();
-    setComments(data);
+    // setComments(data);
+    // add soritng here
+    // TODO:
+    sortComments(data, sortBy); // sort db order into our selection
+  };
+
+  //   sort all comments
+  const sortComments = (data, sort) => {
+    setSortBy(sort);
+    if (sort === 'dateAscend') {
+      const temp = [...data];
+      temp.sort((a, b) => new Date(a.date) - new Date(b.date));
+      setComments(temp);
+    } else if (sort === 'dateDescend') {
+      // double check date
+      const temp = [...data];
+      temp.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setComments(temp);
+    } else if (sort === 'idAscend') {
+      // dont need casting since id is int in backend
+      const temp = [...data];
+      temp.sort((a, b) => a.id - b.id);
+      setComments(temp);
+    } else {
+      const temp = [...data];
+      temp.sort((a, b) => b.id - a.id);
+      setComments(temp);
+    }
   };
 
   useEffect(() => {
@@ -74,6 +102,15 @@ function App() {
           <input type='text' name='comment' />
           <button type='submit'>Add comment</button>
         </form>
+      </div>
+      <div>
+        {/* sorting comments */}
+        <select onChange={(e) => sortComments(comments, e.target.value)}>
+          <option value='dateAscend'>Date Ascending</option>
+          <option value='dateDescend'>Date Descending</option>
+          <option value='idAscend'>ID Ascending</option>
+          <option value='dateDescending'>ID Descending</option>
+        </select>
       </div>
       {/* main comment section */}
       <div className='comment-box'>
